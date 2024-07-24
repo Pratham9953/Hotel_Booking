@@ -1,10 +1,12 @@
 package com.example.Hotel_Booking_App.Services.Impl;
 
 import com.example.Hotel_Booking_App.Entitys.User;
+import com.example.Hotel_Booking_App.Exceptions.ResourceNotFoundException;
 import com.example.Hotel_Booking_App.Repositories.UserRepository;
 import com.example.Hotel_Booking_App.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -14,22 +16,43 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User saveUser(User user) {
-        return userRepository.save(user);
+        try {
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save the user", e);
+        }
     }
 
     @Override
     public User findUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+        try {
+            return userRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+        } catch (ResourceNotFoundException e) {
+            throw e; // Re-throw ResourceNotFoundException to be handled by a global exception handler
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find the user", e);
+        }
     }
 
     @Override
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+        try {
+            return userRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+        } catch (ResourceNotFoundException e) {
+            throw e; // Re-throw ResourceNotFoundException to be handled by a global exception handler
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find the user by username", e);
+        }
     }
 
     @Override
     public List<User> findAllUsers() {
-        return userRepository.findAll();
+        try {
+            return userRepository.findAll();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find all users", e);
+        }
     }
 }
-

@@ -4,6 +4,7 @@ import com.example.Hotel_Booking_App.Dto.BookingDTO;
 import com.example.Hotel_Booking_App.Entitys.Booking;
 import com.example.Hotel_Booking_App.Entitys.Room;
 import com.example.Hotel_Booking_App.Entitys.User;
+import com.example.Hotel_Booking_App.Exceptions.ResourceNotFoundException;
 import com.example.Hotel_Booking_App.Repositories.BookingRepository;
 import com.example.Hotel_Booking_App.Repositories.RoomRepository;
 import com.example.Hotel_Booking_App.Repositories.UserRepository;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Service
 public class BookingServiceImpl implements BookingService {
+
     @Autowired
     private BookingRepository bookingRepository;
 
@@ -28,44 +30,65 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking saveBooking(BookingDTO bookingDTO) {
-        Room room = roomRepository.findById(bookingDTO.getRoomId())
-                .orElseThrow(() -> new RuntimeException("Room not found"));
-        User user = userRepository.findById(bookingDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            Room room = roomRepository.findById(bookingDTO.getRoomId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: " + bookingDTO.getRoomId()));
+            User user = userRepository.findById(bookingDTO.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + bookingDTO.getUserId()));
 
-        room.setBooked(true);
-        roomRepository.save(room);
+            room.setBooked(true);
+            roomRepository.save(room);
 
-        Booking booking = new Booking();
-        booking.setRoom(room);
-        booking.setUser(user);
-        booking.setBookingDate(bookingDTO.getBookingDate());
-        booking.setEndTime(bookingDTO.getEndTime());
+            Booking booking = new Booking();
+            booking.setRoom(room);
+            booking.setUser(user);
+            booking.setBookingDate(bookingDTO.getBookingDate());
+            booking.setEndTime(bookingDTO.getEndTime());
 
-        return bookingRepository.save(booking);
+            return bookingRepository.save(booking);
+        } catch (ResourceNotFoundException e) {
+            throw e; // Re-throw ResourceNotFoundException to be handled by global exception handler
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save the booking", e);
+        }
     }
 
     @Override
     public Booking findBookingById(Long id) {
-        return bookingRepository.findById(id).orElse(null);
+        try {
+            return bookingRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + id));
+        } catch (ResourceNotFoundException e) {
+            throw e; // Re-throw ResourceNotFoundException to be handled by global exception handler
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find the booking", e);
+        }
     }
 
     @Override
     public List<Booking> findAllBookings() {
-        return bookingRepository.findAll();
+        try {
+            return bookingRepository.findAll();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find all bookings", e);
+        }
     }
 
     @Override
     @Scheduled(fixedRate = 60000) // Runs every minute
     public void checkAndUpdateBookings() {
-        List<Booking> bookings = bookingRepository.findAll();
-        LocalDateTime now = LocalDateTime.now();
-        for (Booking booking : bookings) {
-            if (booking.getEndTime().isBefore(now)) {
-                Room room = booking.getRoom();
-                room.setBooked(false);
-                roomRepository.save(room);
+        try {
+            List<Booking> bookings = bookingRepository.findAll();
+            LocalDateTime now = LocalDateTime.now();
+            for (Booking booking : bookings) {
+                if (booking.getEndTime().isBefore(now)) {
+                    Room room = booking.getRoom();
+                    room.setBooked(false);
+                    roomRepository.save(room);
+                }
             }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to check and update bookings", e);
         }
     }
 }
