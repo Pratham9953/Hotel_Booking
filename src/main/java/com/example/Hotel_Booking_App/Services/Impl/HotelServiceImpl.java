@@ -14,11 +14,14 @@ import java.util.List;
 
 @Service
 public class HotelServiceImpl implements HotelService {
-    @Autowired
-    private HotelRepository hotelRepository;
+    private final HotelRepository hotelRepository;
+    private final RoomRepository roomRepository;
 
     @Autowired
-    private RoomRepository roomRepository;
+    public HotelServiceImpl(HotelRepository hotelRepository, RoomRepository roomRepository) {
+        this.hotelRepository = hotelRepository;
+        this.roomRepository = roomRepository;
+    }
 
     @Override
     public Hotel saveHotel(Hotel hotel) {

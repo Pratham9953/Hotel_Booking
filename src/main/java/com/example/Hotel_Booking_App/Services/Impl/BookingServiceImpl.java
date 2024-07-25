@@ -18,15 +18,16 @@ import java.util.List;
 
 @Service
 public class BookingServiceImpl implements BookingService {
+    private final BookingRepository bookingRepository;
+    private final RoomRepository roomRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    private BookingRepository bookingRepository;
-
-    @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    public BookingServiceImpl(BookingRepository bookingRepository, RoomRepository roomRepository, UserRepository userRepository) {
+        this.bookingRepository = bookingRepository;
+        this.roomRepository = roomRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public Booking saveBooking(BookingDTO bookingDTO) {
@@ -39,15 +40,16 @@ public class BookingServiceImpl implements BookingService {
             room.setBooked(true);
             roomRepository.save(room);
 
-            Booking booking = new Booking();
-            booking.setRoom(room);
-            booking.setUser(user);
-            booking.setBookingDate(bookingDTO.getBookingDate());
-            booking.setEndTime(bookingDTO.getEndTime());
+            Booking booking = Booking.builder()
+                    .room(room)
+                    .user(user)
+                    .bookingDate(bookingDTO.getBookingDate())
+                    .endTime(bookingDTO.getEndTime())
+                    .build();
 
             return bookingRepository.save(booking);
         } catch (ResourceNotFoundException e) {
-            throw e; // Re-throw ResourceNotFoundException to be handled by global exception handler
+            throw e; // Re-throw ResourceNotFoundException to be handled by a global exception handler
         } catch (Exception e) {
             throw new RuntimeException("Failed to save the booking", e);
         }
@@ -59,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
             return bookingRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + id));
         } catch (ResourceNotFoundException e) {
-            throw e; // Re-throw ResourceNotFoundException to be handled by global exception handler
+            throw e; // Re-throw ResourceNotFoundException to be handled by a global exception handler
         } catch (Exception e) {
             throw new RuntimeException("Failed to find the booking", e);
         }

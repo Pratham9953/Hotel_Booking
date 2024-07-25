@@ -1,7 +1,9 @@
 package com.example.Hotel_Booking_App.Entitys;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -9,6 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor // Required for JPA
 public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,4 +27,13 @@ public class Booking {
     @ManyToOne
     @JoinColumn(name = "room_id")
     private Room room;
+
+    @Builder
+    public Booking(Long id, LocalDateTime bookingDate, LocalDateTime endTime, User user, Room room) {
+        this.id = id;
+        this.bookingDate = bookingDate;
+        this.endTime = endTime;
+        this.user = user;
+        this.room = room;
+    }
 }

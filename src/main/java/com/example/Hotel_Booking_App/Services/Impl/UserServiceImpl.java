@@ -55,4 +55,13 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Failed to find all users", e);
         }
     }
+
+    // Example of using the Builder pattern to create a User object
+    public User createUser(String username, String password, String email) {
+        return User.builder()
+                .username(username)
+                .password(password)
+                .email(email)
+                .build();
+    }
 }

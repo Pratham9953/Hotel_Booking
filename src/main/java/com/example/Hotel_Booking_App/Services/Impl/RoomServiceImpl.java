@@ -11,8 +11,12 @@ import java.util.List;
 
 @Service
 public class RoomServiceImpl implements RoomService {
+    private final RoomRepository roomRepository;
+
     @Autowired
-    private RoomRepository roomRepository;
+    public RoomServiceImpl(RoomRepository roomRepository) {
+        this.roomRepository = roomRepository;
+    }
 
     @Override
     public Room saveRoom(Room room) {

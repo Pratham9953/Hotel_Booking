@@ -12,23 +12,26 @@ import com.example.Hotel_Booking_App.Repositories.UserRepository;
 import com.example.Hotel_Booking_App.Services.BillService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 public class BillServiceImpl implements BillService {
-    @Autowired
-    private BillRepository billRepository;
+
+    private final BillRepository billRepository;
+    private final BookingRepository bookingRepository;
+    private final RoomRepository roomRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    private BookingRepository bookingRepository;
-
-    @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    public BillServiceImpl(BillRepository billRepository, BookingRepository bookingRepository, RoomRepository roomRepository, UserRepository userRepository) {
+        this.billRepository = billRepository;
+        this.bookingRepository = bookingRepository;
+        this.roomRepository = roomRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public Bill saveBill(Bill bill) {
@@ -81,11 +84,12 @@ public class BillServiceImpl implements BillService {
             );
 
             // Create a new Bill object
-            Bill bill = new Bill();
-            bill.setBooking(booking);
-            bill.setIssueDate(LocalDateTime.now());
-            bill.setAmount(totalAmount);
-            bill.setDescription(billDescription);
+            Bill bill = Bill.builder()
+                    .booking(booking)
+                    .issueDate(LocalDateTime.now())
+                    .amount(totalAmount)
+                    .description(billDescription)
+                    .build();
 
             // Save the bill to the repository
             return billRepository.save(bill);
